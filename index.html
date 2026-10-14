@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MathPrep – SAT & ACT Math</title>
+<!-- Demo Desmos key; get your own free key at https://www.desmos.com/api and replace it -->
+<script src="https://www.desmos.com/api/v1.11/calculator.js?apiKey=dcb31709b452b1cf9dc26972add0fda6"></script>
+<style>
+:root{--bg:#f5f7fb;--c:#fff;--t:#1b2540;--p:#3b5bdb;--ok:#2f9e44;--bad:#e03131;--m:#6b7693}
+*{box-sizing:border-box}body{margin:0;font:16px system-ui,sans-serif;background:var(--bg);color:var(--t)}
+header{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:10px 16px;background:var(--p);color:#fff}
+header b{font-size:20px;margin-right:auto}header button{background:#ffffff22;color:#fff;border:0}
+button,select,input{font:inherit;padding:8px 12px;border-radius:8px;border:1px solid #cfd6e6;background:#fff;color:var(--t);cursor:pointer}
+button.pri{background:var(--p);color:#fff;border-color:var(--p)}
+main{display:grid;grid-template-columns:1fr;gap:12px;padding:12px;max-width:1300px;margin:auto}
+main.dm{grid-template-columns:1fr 1fr}@media(max-width:900px){main.dm{grid-template-columns:1fr}}
+.card{background:var(--c);border-radius:14px;padding:18px;box-shadow:0 1px 4px #0001;margin-bottom:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.cards .card{cursor:pointer;margin:0}.meta{color:var(--m);font-size:14px}.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.opt{display:block;width:100%;text-align:left;margin:8px 0}.opt.ok{background:#d3f9d8;border-color:var(--ok)}.opt.bad{background:#ffe3e3;border-color:var(--bad)}
+.exp{background:#eef2ff;padding:10px;border-radius:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(48px,1fr));gap:6px}
+.g{padding:8px 0;border-width:2px}.g.d0{border-color:#8ce99a}.g.d1{border-color:#ffd43b}.g.d2{border-color:#ff8787}
+.g.ok{background:#d3f9d8}.g.bad{background:#ffe3e3}.d0{color:var(--ok)}.d1{color:#e67700}.d2{color:var(--bad)}
+.bar{height:8px;background:#e5e9f4;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--p)}
+#dm{display:none;position:sticky;top:8px;align-self:start}#calc{height:560px;border-radius:12px;overflow:hidden;border:1px solid #cfd6e6}
+#ai{white-space:normal;line-height:1.5}
+</style></head><body>
+<header><b>📐 MathPrep</b><button onclick="home()">Home</button><button onclick="bank()">Question Bank</button><button onclick="dash()">My Progress</button><button onclick="toggleDm()">Desmos</button><button id="lo" onclick="logout()" style="display:none">Log out</button></header>
+<main id="main"><div id="app"></div><aside id="dm"><div id="calc"></div></aside></main>
+<script>
+// ---------- seeded RNG & helpers ----------
+const hs=s=>{let h=1779033703;for(let i=0;i<s.length;i++){h=Math.imul(h^s.charCodeAt(i),3432918353);h=h<<13|h>>>19}return h>>>0};
+const rng=seed=>{let a=seed>>>0;return()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}};
+const R=(r,a,b)=>a+Math.floor(r()*(b-a+1)),sg=n=>n<0?`- ${-n}`:`+ ${n}`,L=n=>n<0?`${n}`:`+${n}`,co=n=>n==1?'':n==-1?'-':n;
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a),fr=(n,d)=>{const g=gcd(n,d);return `${n/g}/${d/g}`};
+const rad=d=>{const g=gcd(d,180),n=d/g,m=180/g;return(n==1?'':n)+'π'+(m==1?'':'/'+m)};
+function mk(r,q,ans,w,exp,g){let s=[String(ans)];for(const x of w){const y=String(x);if(!s.includes(y))s.push(y)}
+ if(typeof ans=='number'){let k=1;while(s.length<4){const y=String(+(ans+(k%2?1:-1)*Math.ceil(k/2)).toFixed(2));if(!s.includes(y))s.push(y);k++}}
+ const c=s.slice(0,4).map((v,i)=>[v,i==0]);for(let i=c.length-1;i>0;i--){const j=Math.floor(r()*(i+1));[c[i],c[j]]=[c[j],c[i]]}
+ return{q,c:c.map(x=>x[0]),a:c.findIndex(x=>x[1]),exp,g}}
+// ---------- question generators: d = 0 easy, 1 medium, 2 hard ----------
+const G={
+lin:(r,d)=>{const x=R(r,-9,12),a=R(r,2,9),b=R(r,-15,15),w=[x+1,x-1,-x,x+2];
+ if(d==0){const c=a*x+b;return mk(r,`Solve for x: ${a}x ${sg(b)} = ${c}`,x,w,`Subtract ${b} from both sides, then divide by ${a}: x = ${x}.`,[`y=${a}x${L(b)}`,`y=${c}`])}
+ let c=R(r,1,8);if(c==a)c++;
+ if(d==1){const e=(a-c)*x+b;return mk(r,`Solve for x: ${a}x ${sg(b)} = ${c}x ${sg(e)}`,x,w,`Collect x-terms: ${a-c}x = ${e-b}, so x = ${x}.`,[`y=${a}x${L(b)}`,`y=${c}x${L(e)}`])}
+ const e=(a-c)*x+a*b;return mk(r,`Solve for x: ${a}(x ${sg(b)}) − ${c}x = ${e}`,x,w,`Distribute: ${a}x ${sg(a*b)} − ${c}x = ${e} → ${a-c}x = ${e-a*b} → x = ${x}.`,[`y=${a}(x${L(b)})-${c}x`,`y=${e}`])},
+sys:(r,d)=>{const x=R(r,-6,9),y=R(r,-6,9);let a=R(r,1,5),b=R(r,1,5),c=R(r,1,5),e=-R(r,1,5);if(d==0){a=b=c=1;e=-1}
+ const p=a*x+b*y,q=c*x+e*y,ans=[x,y,x*y][d];
+ return mk(r,`Solve the system:<br>${co(a)}x + ${co(b)}y = ${p}<br>${co(c)}x ${e<0?'−':'+'} ${co(Math.abs(e))}y = ${q}<br>What is the value of ${['x','y','xy'][d]}?`,ans,[x+y,x-y,-ans,d==2?x+y:ans+1],`Solving gives x = ${x}, y = ${y}.`,[`${a}x+${b}y=${p}`,`${c}x${L(e)}y=${q}`])},
+quad:(r,d)=>{if(d==0){let p=R(r,1,8),q=R(r,1,8);if(p==q)q++;const h=Math.max(p,q);
+  return mk(r,`What is the larger solution of x² ${sg(-(p+q))}x ${sg(p*q)} = 0?`,h,[Math.min(p,q),-h,p+q],`Factor: (x − ${p})(x − ${q}) = 0 → larger root ${h}.`,[`y=x^2${L(-(p+q))}x${L(p*q)}`])}
+ if(d==1){const a=R(r,2,4),p=R(r,1,7);let q=R(r,-6,-1);const s=p+q;
+  return mk(r,`What is the sum of the solutions of ${a}x² ${sg(-a*s)}x ${sg(a*p*q)} = 0?`,s,[-s,a*s,p*q],`Sum of roots = −b/a = ${s}.`,[`y=${a}x^2${L(-a*s)}x${L(a*p*q)}`])}
+ const b=2*R(r,2,7),k=b*b/4;return mk(r,`For what value of k does x² + ${b}x + k = 0 have exactly one real solution?`,k,[b*b/2,b/2,k+b],`Discriminant = 0: ${b}² − 4k = 0 → k = ${k}.`,[`y=x^2+${b}x+${k}`])},
+expo:(r,d)=>{if(d==0){const a=R(r,2,5),n=R(r,2,5);return mk(r,`If f(x) = ${a}·2ˣ, what is f(${n})?`,a*2**n,[a*n*2,a+2**n,a*2**(n+1)],`${a}·2^${n} = ${a*2**n}.`,[`y=${a}\\cdot2^x`])}
+ if(d==1){const P=1000*R(r,1,5),p=R(r,2,8),t=R(r,2,5);return mk(r,`$${P} grows ${p}% per year (compounded annually). To the nearest dollar, what is the value after ${t} years?`,'$'+Math.round(P*(1+p/100)**t),['$'+Math.round(P*(1+p*t/100)),'$'+Math.round(P*(1+p/100)*t),'$'+Math.round(P*(1+p/100)**(t+1)),'$'+Math.round(P*(1+p/100)**(t-1)),'$'+Math.round(P*(1+p/100)**t+P)],`A = P(1+r)^t = ${P}(1.${String(p).padStart(2,'0')})^${t}.`,[`y=${P}(1+${p/100})^x`])}
+ const k=R(r,2,5),m=R(r,2,5),P=R(r,2,9)*10,n=k*m;return mk(r,`A population of ${P} doubles every ${k} days. How large is it after ${n} days?`,P*2**m,[P*m*2,P*2**(m+1),P*n],`${n}/${k} = ${m} doublings → ${P}·2^${m}.`,[`y=${P}\\cdot2^{x/${k}}`])},
+pct:(r,d)=>{if(d==0){const p=[10,15,20,25,30,40,50,60,75][R(r,0,8)],y=20*R(r,1,15);return mk(r,`What is ${p}% of ${y}?`,p*y/100,[p*y/10,y-p*y/100,p+y],`${p}/100 × ${y} = ${p*y/100}.`)}
+ if(d==1){const a=20*R(r,1,10),p=5*R(r,1,12),b=a*(1+p/100);return mk(r,`A price rises from ${a} to ${b}. What is the percent increase?`,p+'%',[Math.round((b-a)/b*100)+'%',(p+10)+'%',(p+20)+'%',(p/2)+'%'],`(${b} − ${a})/${a} = ${p}%.`)}
+ const P=R(r,40,200),q=R(r,10,40),t=R(r,5,10),f=v=>'$'+v.toFixed(2);return mk(r,`A $${P} item is discounted ${q}% and then ${t}% sales tax is added to the sale price. What is the final cost?`,f(P*(1-q/100)*(1+t/100)),[f(P*(1-q/100+t/100)),f(P*(1-q/100)),f(P*(1+t/100))],`${P} × ${1-q/100} × ${1+t/100}.`)},
+stats:(r,d)=>{if(d==0){const m=R(r,10,30),dv=[R(r,-8,8),R(r,-8,8),R(r,-8,8),R(r,-8,8)];dv.push(-dv.reduce((a,b)=>a+b));const v=dv.map(x=>m+x);
+  return mk(r,`What is the mean of ${v.join(', ')}?`,m,[m+1,m-1,Math.max(...v)],`Sum ÷ 5 = ${m}.`)}
+ if(d==1){const v=Array.from({length:7},()=>R(r,3,60)),s=[...v].sort((a,b)=>a-b);return mk(r,`What is the median of ${v.join(', ')}?`,s[3],[v[3],s[2],s[4],Math.round(v.reduce((a,b)=>a+b)/7)],`Sorted: ${s.join(', ')} → the middle value is ${s[3]}.`)}
+ const m=R(r,70,90),m2=m+R(r,1,4);return mk(r,`A student's average on 4 tests is ${m}. What score on the 5th test raises the average to ${m2}?`,5*m2-4*m,[m2,4*m2-3*m,5*m2-4*m+(m2-m)],`Needed total 5(${m2}) = ${5*m2}; current total ${4*m}; difference ${5*m2-4*m}.`)},
+geo:(r,d)=>{if(d==0){const w=R(r,3,12),l=w+R(r,1,8);return mk(r,`A rectangle is ${l} by ${w}. What is its perimeter?`,2*(l+w),[l*w,l+w,2*l*w],`2(${l}+${w}) = ${2*(l+w)}.`)}
+ if(d==1){const k=R(r,2,9);return mk(r,`A circle has circumference ${2*k}π. What is its area?`,k*k+'π',[2*k*k+'π',4*k*k+'π',k+'π'],`r = ${k}, so area = π r² = ${k*k}π.`)}
+ const k=[6,12][R(r,0,1)],t=[60,90,120,180][R(r,0,3)];return mk(r,`A sector of a circle with radius ${k} has a central angle of ${t}°. What is the area of the sector?`,t*k*k/360+'π',[t*k/360+'π',t*k*k/180+'π',k*k+'π',(t*k*k/360+k)+'π'],`(${t}/360)·π·${k}² = ${t*k*k/360}π.`)},
+trig:(r,d)=>{if(d==0){const [a,b,c]=[[3,4,5],[5,12,13],[8,15,17],[7,24,25]][R(r,0,3)],k=R(r,1,3);return mk(r,`Right triangle ABC has the right angle at C, BC = ${a*k}, AC = ${b*k}, AB = ${c*k}. What is sin A?`,`${a}/${c}`,[`${b}/${c}`,`${a}/${b}`,`${b}/${a}`],`sin A = opposite/hypotenuse = BC/AB = ${a}/${c}.`)}
+ if(d==1){const t=R(r,10,80);return mk(r,`If sin(${t}°) = cos(y°) and 0 < y < 90, what is y?`,90-t,[t,180-t,90+t],`sin θ = cos(90° − θ), so y = ${90-t}.`,[`y=\\sin(x)`,`y=\\cos(x)`])}
+ const dg=[30,45,60,120,135,150,210,240][R(r,0,7)];return mk(r,`Convert ${dg}° to radians.`,rad(dg),[rad(dg+30),rad(dg+60),rad(360-dg),rad(dg+90),rad(dg+15)],`${dg} × π/180 = ${rad(dg)}.`)},
+coord:(r,d)=>{if(d==0){const m=R(r,-5,5)||2,x1=R(r,-5,5),y1=R(r,-5,5),dx=R(r,1,5);return mk(r,`What is the slope of the line through (${x1}, ${y1}) and (${x1+dx}, ${y1+m*dx})?`,m,[-m,m+1,m-1],`Slope = rise/run = ${m*dx}/${dx} = ${m}.`,[`y=${m}(x${L(-x1)})${L(y1)}`])}
+ if(d==1){const x1=R(r,-8,8),y1=R(r,-8,8),x2=x1+2*R(r,1,6),y2=y1+2*R(r,-6,6),mx=(x1+x2)/2,my=(y1+y2)/2;return mk(r,`What is the midpoint of (${x1}, ${y1}) and (${x2}, ${y2})?`,`(${mx}, ${my})`,[`(${my}, ${mx})`,`(${x1+x2}, ${y1+y2})`,`(${mx}, ${my+1})`,`(${mx+1}, ${my})`,`(${mx-1}, ${my-1})`],`Average the coordinates: (${mx}, ${my}).`)}
+ const [a,b,c]=[[3,4,5],[5,12,13],[8,15,17]][R(r,0,2)],k=R(r,1,2),x1=R(r,-5,5),y1=R(r,-5,5);return mk(r,`What is the distance between (${x1}, ${y1}) and (${x1+a*k}, ${y1-b*k})?`,c*k,[(a+b)*k,c*k+2,c*k-1],`√(${a*k}² + ${b*k}²) = ${c*k}.`)},
+prob:(r,d)=>{if(d==0){const a=R(r,2,6),b=a+R(r,1,4),c=b+R(r,1,4),t=a+b+c;return mk(r,`A bag has ${a} red, ${b} blue and ${c} green marbles. What is the probability of drawing a red marble?`,fr(a,t),[fr(b,t),fr(c,t),fr(a,b+c),fr(a+1,t),fr(a+2,t),fr(c,a+b)],`${a}/${t} in lowest terms.`)}
+ if(d==1){const m=R(r,2,6),n=R(r,2,5),k=R(r,2,4);return mk(r,`An outfit is 1 of ${m} shirts, 1 of ${n} pants and 1 of ${k} pairs of shoes. How many outfits are possible?`,m*n*k,[m+n+k,m*n+k,m*n*k+m],`Multiply: ${m}×${n}×${k}.`)}
+ const n=R(r,5,14);return mk(r,`${n} people each shake hands once with every other person. How many handshakes occur?`,n*(n-1)/2,[n*(n-1),n*n,n*(n-1)/2+n],`C(${n},2) = ${n}·${n-1}/2.`)}
+};
+const SEC={sat:{lin:'Linear Equations',sys:'Systems of Equations',quad:'Quadratics',expo:'Exponential Growth',pct:'Percentages & Ratios',stats:'Data & Statistics',geo:'Geometry',trig:'Trig & Radians',coord:'Coordinate Geometry',prob:'Probability & Counting'},
+act:{pct:'Pre-Algebra',lin:'Elementary Algebra',sys:'Intermediate Algebra: Systems',quad:'Intermediate Algebra: Quadratics',coord:'Coordinate Geometry',geo:'Plane Geometry',trig:'Trigonometry',prob:'Counting & Probability',stats:'Statistics'}};
+const N={lin:'Isolate x using inverse operations; check by substituting back. Graph both sides in Desmos to see the solution as an intersection.',sys:'Use elimination when coefficients line up, substitution when a variable is isolated. Solutions = intersection point.',quad:'Factor, use Vieta (sum = −b/a, product = c/a), and the discriminant b²−4ac (0 → one solution).',expo:'Growth: A = P(1+r)^t. Doubling every k units: P·2^(t/k).',pct:'Percent change = (new − old)/old. Successive changes multiply.',stats:'Mean = sum/count. Median = middle of the sorted list. Work backwards from totals.',geo:'Know perimeter/area formulas, circle: C = 2πr, A = πr², sector = (θ/360)·πr².',trig:'SOHCAHTOA. sin θ = cos(90°−θ). Radians = degrees × π/180.',coord:'Slope = Δy/Δx, midpoint = averages, distance = √(Δx²+Δy²).',prob:'Probability = favorable/total. Multiplication principle for counting; C(n,2) = n(n−1)/2.'};
+const DN=['Easy','Medium','Hard'];
+function gen(s,t,i,d,rand){if(d==null)d=i<17?0:i<34?1:2;const q=G[t](rng(hs(rand?s+t+Math.random():s+t+i)),d);q.k=s+':'+t;q.d=d;q.idx=rand?null:i;return q}
+// ---------- accounts & storage (browser localStorage; swap for Netlify Identity/Supabase for real cross-device sync) ----------
+const $=s=>document.querySelector(s),app=$('#app');let U=null,D=null,Q=null,calc=null,dmOn=false;
+const st={get:()=>{try{return JSON.parse(localStorage.getItem('mq_u')||'{}')}catch(e){return{}}},set:o=>{try{localStorage.setItem('mq_u',JSON.stringify(o))}catch(e){}}};
+const sha=async s=>[...new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s)))].map(b=>b.toString(16).padStart(2,'0')).join('');
+const save=()=>{const o=st.get();o[U].data=D;st.set(o)};
+async function auth(reg){const n=$('#un').value.trim().toLowerCase(),p=$('#pw').value;if(!n||p.length<4)return $('#m').textContent='Enter a username and a password (4+ characters).';
+ const o=st.get(),h=await sha(n+p);if(reg){if(o[n])return $('#m').textContent='Username already taken.';o[n]={h,data:{log:[],done:{}}};st.set(o)}else if(!o[n]||o[n].h!==h)return $('#m').textContent='Wrong username or password.';
+ U=n;D=o[n].data;try{localStorage.setItem('mq_cur',n)}catch(e){}home()}
+function logout(){U=D=null;try{localStorage.removeItem('mq_cur')}catch(e){}login()}
+function login(){$('#lo').style.display='none';hideDm();app.innerHTML=`<div class=card style="max-width:420px;margin:auto"><h2>Welcome to MathPrep</h2><p class=meta>Log in or create a free account to save your progress.</p><p><input id=un placeholder=Username style="width:100%"></p><p><input id=pw type=password placeholder=Password style="width:100%"></p><div class=row><button class=pri onclick="auth(false)">Log in</button><button onclick="auth(true)">Create account</button></div><p id=m style="color:var(--bad)"></p></div>`}
+// ---------- Desmos ----------
+function showDm(){dmOn=true;$('#dm').style.display='block';$('#main').classList.add('dm');if(!calc&&window.Desmos)calc=Desmos.GraphingCalculator($('#calc'),{keypad:true,expressions:true})}
+function hideDm(){$('#dm').style.display='none';$('#main').classList.remove('dm')}
+function toggleDm(){dmOn&&$('#dm').style.display=='block'?hideDm():showDm()}
+function graph(q){if(!dmOn)showDm();if(calc){calc.setBlank();(q.g||[]).forEach((e,i)=>calc.setExpression({id:'g'+i,latex:e}))}}
+// ---------- views ----------
+const stat=k=>{const l=D.log.filter(x=>x.k==k),c=l.filter(x=>x.ok).length;return{n:l.length,acc:l.length?c/l.length:null,l}};
+function home(){$('#lo').style.display='';hideDm();dmOn=false;const tot=D.log.length,ok=D.log.filter(x=>x.ok).length;
+ app.innerHTML=`<div class=card><h2>Hi ${U} 👋</h2><p class=meta>${tot} questions answered · ${tot?Math.round(ok/tot*100):0}% correct</p></div><div class=cards>
+ <div class=card onclick="sec('sat')"><h3>🎓 SAT Math</h3><p class=meta>10 topics × 50 questions</p></div>
+ <div class=card onclick="sec('act')"><h3>📝 ACT Math</h3><p class=meta>9 topics × 50 questions</p></div>
+ <div class=card onclick="bank()"><h3>🎲 Question Bank</h3><p class=meta>Generate unlimited fresh questions</p></div>
+ <div class=card onclick="dash()"><h3>🤖 AI Coach</h3><p class=meta>Analyze weak areas & custom practice</p></div></div>`}
+function sec(s){hideDm();app.innerHTML=`<div class=card><h2>${s.toUpperCase()} Math Topics</h2>${Object.entries(SEC[s]).map(([t,n])=>{const k=s+':'+t,x=stat(k),dn=Array.from({length:50},(_,i)=>D.done[k+':'+i]!=null).filter(Boolean).length;
+ return`<div style="margin:14px 0;cursor:pointer" onclick="topic('${s}','${t}')"><b>${n}</b> <span class=meta>· ${dn}/50 done · ${x.n?Math.round(x.acc*100)+'% accuracy':'not started'}</span><div class=bar><i style="width:${dn*2}%"></i></div></div>`}).join('')}</div>`}
+function topic(s,t){hideDm();app.innerHTML=`<div class=card><button onclick="sec('${s}')">← Topics</button><h2>${SEC[s][t]}</h2><p>📘 <b>Study notes:</b> ${N[t]}</p><p class=meta>1–17 Easy · 18–34 Medium · 35–50 Hard. Desmos opens beside each question.</p><div class=grid>${Array.from({length:50},(_,i)=>{const v=D.done[`${s}:${t}:${i}`];return`<button class="g d${i<17?0:i<34?1:2} ${v===1?'ok':v===0?'bad':''}" onclick="openQ('${s}','${t}',${i})">${i+1}</button>`}).join('')}</div></div>`}
+const openQ=(s,t,i)=>startQuiz(Array.from({length:50},(_,j)=>gen(s,t,j)),i,SEC[s][t]);
+function bank(){hideDm();app.innerHTML=`<div class=card><h2>🎲 Question Bank Generator</h2><div class=row><select id=bsec onchange="fillT()"><option value=sat>SAT</option><option value=act>ACT</option></select><select id=btop></select><select id=bdif><option value=-1>Mixed difficulty</option><option value=0>Easy</option><option value=1>Medium</option><option value=2>Hard</option></select><select id=bcnt><option>5</option><option selected>10</option><option>20</option><option>30</option></select><button class=pri onclick="genBank()">Generate</button></div><p class=meta>Every click builds brand-new questions.</p></div>`;fillT()}
+function fillT(){const s=$('#bsec').value;$('#btop').innerHTML='<option value=all>All topics</option>'+Object.entries(SEC[s]).map(([k,v])=>`<option value=${k}>${v}</option>`).join('')}
+function genBank(){const s=$('#bsec').value,t=$('#btop').value,d=+$('#bdif').value,n=+$('#bcnt').value,ts=t=='all'?Object.keys(SEC[s]):[t];
+ startQuiz(Array.from({length:n},(_,i)=>gen(s,ts[i%ts.length],i,d<0?i%3:d,true)),0,'Question Bank')}
+function startQuiz(qs,i,title){Q={qs,i,res:{},title};rq()}
+function rq(){const q=Q.qs[Q.i],r=Q.res[Q.i],[s,t]=q.k.split(':');
+ app.innerHTML=`<div class=card><div class=meta>${Q.title} · Q ${Q.i+1}/${Q.qs.length} · ${s.toUpperCase()} ${SEC[s][t]} · <b class=d${q.d}>${DN[q.d]}</b></div><h3>${q.q}</h3>${q.c.map((c,j)=>`<button class="opt ${r==null?'':j==q.a?'ok':j==r?'bad':''}" ${r==null?'':'disabled'} onclick="ans(${j})">${'ABCD'[j]}. ${c}</button>`).join('')}${r==null?'':`<p class=exp>${r==q.a?'✅ Correct! ':'❌ Not quite. '}${q.exp}</p>`}<div class=row><button onclick="nav(-1)">← Prev</button><button class=pri onclick="nav(1)">Next →</button><button onclick="home()">Exit</button></div></div>`;graph(q)}
+function ans(j){const q=Q.qs[Q.i];if(Q.res[Q.i]!=null)return;Q.res[Q.i]=j;const ok=j==q.a;D.log.push({k:q.k,d:q.d,ok,t:Date.now()});if(q.idx!=null)D.done[q.k+':'+q.idx]=ok?1:0;save();rq()}
+function nav(n){const i=Q.i+n;if(i<0)return;if(i>=Q.qs.length){const c=Object.entries(Q.res).filter(([i,j])=>Q.qs[i].a==j).length;hideDm();return app.innerHTML=`<div class=card><h2>Set complete 🎉</h2><p>Score: <b>${c}/${Object.keys(Q.res).length}</b> answered correctly (${Q.qs.length} questions).</p><div class=row><button class=pri onclick="dash()">See my progress</button><button onclick="home()">Home</button></div></div>`}Q.i=i;rq()}
+// ---------- progress, AI coach, custom practice ----------
+function payload(){const o=[];for(const s in SEC)for(const t in SEC[s]){const k=s+':'+t,x=stat(k);if(!x.n)continue;const bd={};[0,1,2].forEach(d=>{const l=x.l.filter(y=>y.d==d);bd[DN[d]]=`${l.filter(y=>y.ok).length}/${l.length}`});o.push({k,topic:s.toUpperCase()+' · '+SEC[s][t],n:x.n,acc:+x.acc.toFixed(2),byDifficulty:bd})}return o}
+function dash(){hideDm();const p=payload();app.innerHTML=`<div class=card><h2>My Progress</h2>${p.length?p.map(x=>`<div style="margin:10px 0"><b>${x.topic}</b> <span class=meta>${x.n} attempts · ${Math.round(x.acc*100)}%</span><div class=bar><i style="width:${x.acc*100}%;background:${x.acc<.6?'var(--bad)':x.acc<.8?'#f59f00':'var(--ok)'}"></i></div></div>`).join(''):'<p class=meta>Answer some questions first.</p>'}<div class=row><button class=pri onclick="coach()">🤖 AI analysis</button><button onclick="weak()">🎯 Practice my weak areas</button></div><div id=ai class=exp style="display:none;margin-top:12px"></div></div>`}
+const esc=s=>s.replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])).replace(/\*\*(.+?)\*\*/g,'<b>$1</b>').replace(/\n/g,'<br>');
+function localCoach(p){const w=p.filter(x=>x.n>=3).sort((a,b)=>a.acc-b.acc);return w.length?`<b>Weakest areas:</b><br>${w.slice(0,3).map(x=>`• ${x.topic} (${Math.round(x.acc*100)}%)`).join('<br>')}<br>Tip: review the study notes, then use “Practice my weak areas”.`:'Answer at least 3 questions in a topic to get an analysis.'}
+async function coach(){const el=$('#ai'),p=payload();el.style.display='block';el.textContent='Analyzing…';
+ try{const r=await fetch('/.netlify/functions/ai',{method:'POST',body:JSON.stringify({stats:p})});if(!r.ok)throw 0;el.innerHTML=esc((await r.json()).text)}
+ catch(e){el.innerHTML=localCoach(p)+'<p class=meta>(Basic coach shown. Deploy on Netlify with ANTHROPIC_API_KEY set for full AI analysis.)</p>'}}
+function weak(){const w=payload().filter(x=>x.n>=3).sort((a,b)=>a.acc-b.acc).slice(0,3);const el=$('#ai');if(!w.length){el.style.display='block';return el.textContent='Answer at least 3 questions in a topic first.'}
+ const qs=Array.from({length:12},(_,i)=>{const x=w[i%w.length],[s,t]=x.k.split(':'),d=x.acc<.4?[0,0,1][i%3]:x.acc<.7?[0,1,1,2][i%4]:2;return gen(s,t,i,d,true)});startQuiz(qs,0,'Custom Practice')}
+// ---------- start ----------
+(()=>{let c=null;try{c=localStorage.getItem('mq_cur')}catch(e){}const o=st.get();if(c&&o[c]){U=c;D=o[c].data;home()}else login()})();
+</script></body></html>
